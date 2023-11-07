@@ -14,19 +14,14 @@
 
 static progressbar *progress = nil;
 
-static void image_callback(CFDictionaryRef d, id something) {
-
-//    dprint("progress: %s\n", [progress[@"Status"] UTF8String]);
+static void image_callback(NSDictionary *dict, id something) {
     if (progress) {
-        NSDictionary *dict = (__bridge NSDictionary *)(d);
         NSNumber *complete = dict[@"PercentComplete"];
         if (complete) {
             unsigned long value = [complete unsignedIntegerValue];
             progressbar_update(progress, value);
         }
     }
-//    NSLog(@"%@ %@", something, progress );
-//    printf("");
 }
 
 int uninstall_ddi(AMDeviceRef d, NSDictionary *options) {
@@ -54,21 +49,19 @@ int install_ddi(AMDeviceRef d, NSDictionary *options) {
     
 
     NSData *dataSIG = [NSData dataWithContentsOfFile:global_options.ddiSignatureInstallPath];
+// for debugging ...
 //    NSData *dataSIG = [NSData dataWithContentsOfFile:@"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/15.0/DeveloperDiskImage.dmg.signature"];
     if (!dataSIG) {
-        printf("Need a valid signature\n");
+        dprint("Need a valid signature\n");
         exit(1);
     }
     NSDictionary *op = @{@"ImageSignature" :  dataSIG, @"ImageType": @"Developer", @"DiskImage" : @"/Developer"};
 
     progress = progressbar_new("Installing... ", 100);
     progressbar_update(progress, 0);
+    amd_err er = AMDeviceMountImage(d,  global_options.ddiInstallPath, op, image_callback, nil);
     
-     amd_err er = AMDeviceMountImage(d,  global_options.ddiInstallPath, op, image_callback, nil);
-    
-    
-    if ( er != ERR_SUCCESS)
-    {
+    if (er != ERR_SUCCESS) {
         progressbar_update_label(progress, "Error:");
         progressbar_update(progress, 0);
         progressbar_finish(progress);
@@ -81,9 +74,5 @@ int install_ddi(AMDeviceRef d, NSDictionary *options) {
     }
     AMDeviceStopSession(d);
     AMDeviceDisconnect(d);
-    
-
-     
-    
     return 0;
 }
