@@ -1,0 +1,107 @@
+.Dd __DATE__
+.Dt mobdevim 1
+.Os Darwin
+.Sh NAME
+.Nm mobdevim
+.Nd (mobiledevice-improved) Query an iOS device
+.Sh SYNOPSIS
+.Nm
+.Op option...
+.Ar <mach-o-file>
+.Sh DESCRIPTION
+The mobdevim utlity interacts with your plugged in iOS device over USB/WIFI using Apple's MobileDevice framework and friends
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Fl c, -color
+Adds color to output
+.It Fl l, -library
+Instead of dumping symbols, search all procs for library
+.It Fl O, -opcs
+Dump the DYLD opcodes used to bind external symbols at load time
+.It Fl f, -filter Ar FilterWord
+Specify classes to filter by (case insensitive, can be used multiple times)
+.It Fl a, -arch Ar architecture
+Specify the arichtecture if file is FAT. Understands x86_64h, x86_64, arm64, arm64e
+.It Fl u, -undefined
+Only display undefined (externally referenced) symbols or classes
+.It Fl U, -defined
+Only display defined (internally implemented) symbols or classes
+.It Fl v, -verbose
+Specifies the verbosity level. The -v option can be used multiple times, while the long argument sets the exact level 0-5. Kind of like codesign(1)'s verbosity that everyone complains about...
+.It Fl -objc
+Dump the Objective-C classes
+.It Fl -swift
+Dump the Swift type descriptors (classes, structs, enums)
+.It Fl s
+Sets mode to Swift mode and verbosity to level 4
+.It Fl h, -help
+Print out this beautiful, helpful document
+.El
+.Sh EXAMPLES
+List ObjC internal/external classes referenced/implemented by vmmap:
+.Dl dsdump --objc $(which vmmap)
+.Pp
+List all alive processes that have the MobileDevice loaded
+.Dl sudo dsdump  -l /S*/L*/P*/MobileDevice.framework/MobileDevice
+.Pp
+List the Objective-C external classes called by vmmap:
+.Dl dsdump --objc $(which vmmap) -u
+.Pp
+List the Objective-C internal classes implemented by vmmap:
+.Dl dsdump --objc $(which vmmap) -U
+.Pp
+Perform an Objective-C "class-dump" in color of vmmap
+.Dl dsdump --objc $(which vmmap) -U -vvvc
+.Pp
+Thoroughly dump the Swift content in color in the Console app
+.Dl dsdump --swift /Applications/Utilities/Console.app/Contents/MacOS/Console  -cvvvv
+.Pp
+.Sh VERBOSITY
+dsdump can output a range of verbosity between the 3 different modes (--sym, --swift, --objc). The verbosity level can be set by the long form (--verbose=3) or by specifying a count via short form (-vvv). The breakdown of these levels are shown below:
+.Pp
+--sym:
+.Dl 0. Print symbol
+.Dl 1. 0 + library path or Mach-O section
+.Dl 2. 1 + fullpath to library
+.Dl 3. 2 + nlist struct output
+.Dl 4. Same as 3... for now
+.Dl 5. Same as 3... for now
+.Pp
+--swift:
+.Dl 0. List swift types
+.Dl 1. 0 + Parent classes
+.Dl 2. 1 + Protocols
+.Dl 3. 2 + Swift "type dump"
+.Dl 4. 3 + Extended type dump, ObjC bridge methods
+.Dl 5. 4 + Commenting in methods
+.Pp
+--objc:
+.Dl 0. List Objective-C classes
+.Dl 1. 0 + Parent classes & library basename for external
+.Dl 2. 1 + Fullpath to libraries for external + protocols
+.Dl 3. 2 + Objective-C "class dump"
+.Dl 4. 3 + Print properties
+.Dl 5. 4 + Print ivars & offsets
+.Pp
+.Sh ENVIRONMENT
+.Pp
+.Bl -tag -width indent
+.Ev DSCOLOR
+Enables color. Alternatively, use -c
+.Pp
+.Ev ARCH
+.Ar <arch>
+Specify the architecture if inspecting a FAT executable, Alternatively use --arch
+.El
+.Sh SEE ALSO
+.Xr nm 1 ,
+.Xr objdump 1 ,
+.Xr vmmap 1
+.Sh BUGS
+There's a situation where occassionally dsdump will think the parent class is a RO_ROOT where it will in fact won't be. I'll print this out for now so I can hunt it down
+.Pp
+ARM64e still needs some luv, especially on the Swift side, especially with Protocols... and not crashing
+.Sh AUTHORS
+.An "Derek Selander"
+.Mt @LOLgrep
+

@@ -1,0 +1,12 @@
+
+
+com.apple.iosdiagnostics.relay Provides detailed network
+usage per-application on a per-day basis
+
+com.apple.mobile.installation_proxy Given an enterprise
+certificate, can use this to load custom software onto the
+device (which can run invisibly and in the background)
+
+com.apple.syslog_relay: Syslog, provides a lot of details
+about what the device is doing, and often leaks user
+credentials from 3rd party apps via NSLog()
