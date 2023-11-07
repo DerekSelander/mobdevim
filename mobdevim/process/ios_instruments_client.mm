@@ -94,7 +94,7 @@ static void device_callback(am_device_notification_callback_info *cbi, void *arg
     found_device = true;
     
     if ( verbose )
-        printf("found device: %s\n", _device_id.c_str());
+        fprintf(stdout, "found device: %s\n", _device_id.c_str());
     
     do
     {
@@ -137,7 +137,7 @@ static void device_callback(am_device_notification_callback_info *cbi, void *arg
         }
         
         if ( verbose )
-            printf("successfully launched instruments server\n");
+            fprintf(stdout, "successfully launched instruments server\n");
     }
     while ( false );
     
@@ -444,7 +444,7 @@ bool perform_handshake(am_device_service_connection *conn)
         channels = _channels;
 
    if ( verbose )
-       printf("channel list:\n%s\n", [[channels description] UTF8String]);
+       fprintf(stdout,"channel list:\n%s\n", [[channels description] UTF8String]);
 
    ok = true;
  }
@@ -461,17 +461,12 @@ bool perform_handshake(am_device_service_connection *conn)
 // to remotely invoke Objective-C methods.
 static int make_channel(am_device_service_connection *conn, NSString* identifier)
 {
-    
-    
-    
-    if ( ![channels objectForKey:identifier])
-    {
+    if ( ![channels objectForKey:identifier]) {
         fprintf(stderr, "channel %s is not supported by the server\n", [identifier UTF8String]);
         return -1;
     }
     
     int code = ++cur_channel;
-    
     message_aux_t args;
     args.append_int(code);
     args.append_obj(identifier);
@@ -502,93 +497,70 @@ static int make_channel(am_device_service_connection *conn, NSString* identifier
 //   returns: CFArrayRef procs
 bool print_proclist(am_device_service_connection *conn)
 {
+    NSArray *retobj = nil;
     int channel = make_channel(conn, @"com.apple.instruments.server.services.deviceinfo");
-    if ( channel < 0 )
-        return false;
-    
-    CFTypeRef retobj = NULL;
-    id _retobj = nil;
-    if ( !send_message(conn, channel, @"runningProcesses", NULL)
-        || !recv_message(conn, &_retobj, NULL)
-        || retobj == NULL )
-    {
-        fprintf(stderr, "Error: failed to retrieve return value for runningProcesses\n");
+    if (channel < 0) {
         return false;
     }
-    retobj = (__bridge CFTypeRef)_retobj;
+    
+    if (!send_message(conn, channel, @"runningProcesses", NULL)) {
+        fprintf(stderr, "failed to send runningProcess msg\n");
+        return false;
+    }
+    
+    if (!recv_message(conn, &retobj, NULL)) {
+        fprintf(stderr, "failed to recv runningProcess msg\n");
+        return false;
+    }
+    
     bool ok = true;
-    if ( CFGetTypeID(retobj) == CFArrayGetTypeID() )
-    {
-        NSArray* array = (__bridge NSArray*)retobj;
-        for ( NSDictionary *procDict in array )
-        {
-        
-            
+    if ([retobj isKindOfClass:[NSArray class]]) {
+        for ( NSDictionary *procDict in retobj ) {
             NSString* _name = procDict[@"name"];
             int _pid = [procDict[@"pid"] intValue];
             BOOL isApp = [procDict[@"isApplication"] boolValue];
             NSString *path = procDict[@"realAppName"];
             NSDate *startDate = procDict[@"startDate"];
             
-            
-            printf(" %s%8d%s %s%s%s %s%s%s %s%s%s\n", dcolor(dc_cyan), _pid, colorEnd(), dcolor(dc_gray), startDate.description.UTF8String, colorEnd(), isApp ? dcolor(dc_magenta) : dcolor(dc_yellow), _name.UTF8String, colorEnd(), dcolor(dc_red), path.UTF8String, colorEnd());
-            //            printf(" %s%7s%s %s%s%s\n", dcolor(dc_cyan), [[dict[@"pid"] description] UTF8String], colorEnd(), [dict[@"isApplication"] boolValue] ? dcolor(dc_yellow) : dcolor(dc_bold), [[dict[@"realAppName"] description] UTF8String], colorEnd());
+            fprintf(stdout, " %s%8d%s %s%s%s %s%s%s %s%s%s\n", dcolor(dc_cyan), _pid, colorEnd(), dcolor(dc_gray), startDate.description.UTF8String, colorEnd(), isApp ? dcolor(dc_magenta) : dcolor(dc_yellow), _name.UTF8String, colorEnd(), dcolor(dc_red), path.UTF8String, colorEnd());
         }
-    }
-    else
-    {
-        fprintf(stderr, "Error: process list is not in the expected format: %s\n", get_description(retobj).c_str());
+    } else {
+        fprintf(stderr, "Error: process list is not in the expected format: %s\n", [[retobj description] UTF8String]);
         ok = false;
     }
     
-    CFRelease(retobj);
     return ok;
 }
 
-NSArray* get_proclist_matching_name(am_device_service_connection *conn, NSString *searchedName)
-{
+NSArray* get_proclist_matching_name(am_device_service_connection *conn, NSString *searchedName) {
     NSMutableArray *returnArray = [NSMutableArray array];
+    NSArray *retobj = nil;
     int channel = make_channel(conn, @"com.apple.instruments.server.services.deviceinfo");
-    if ( channel < 0 )
-        return nil;
-    
-    CFTypeRef retobj = NULL;
-    id _retobj = nil;
-    
-    if ( !send_message(conn, channel, @"runningProcesses", NULL)
-        || !recv_message(conn, &_retobj, NULL)
-        || retobj == NULL )
-    {
-        fprintf(stderr, "Error: failed to retrieve return value for runningProcesses\n");
+    if (channel < 0) {
         return nil;
     }
-    retobj = (__bridge CFTypeRef)_retobj;
-    bool ok = true;
-    if ( CFGetTypeID(retobj) == CFArrayGetTypeID() )
-    {
-        CFArrayRef array = (CFArrayRef)retobj;
-        
-        for ( size_t i = 0, size = CFArrayGetCount(array); i < size; i++ )
-        {
-            CFDictionaryRef dict = (CFDictionaryRef)CFArrayGetValueAtIndex(array, i);
-            printf("%s\n", ((__bridge NSDictionary*)dict).description.UTF8String);
-            CFStringRef _name = (CFStringRef)CFDictionaryGetValue(dict, CFSTR("name"));
-            
-            if ([(__bridge NSString*)_name isEqualToString:searchedName])
-            {
-                CFNumberRef _pid = (CFNumberRef)CFDictionaryGetValue(dict, CFSTR("pid"));
-                [returnArray addObject:(__bridge NSNumber*)_pid];
-                
+    
+    if (!send_message(conn, channel, @"runningProcesses", NULL)) {
+        fprintf(stderr, "failed to send runningProcess msg\n");
+        return nil;
+    }
+    
+    if (!recv_message(conn, &retobj, NULL)) {
+        fprintf(stderr, "failed to recv runningProcess msg\n");
+        return nil;
+    }
+    
+    if ([retobj isKindOfClass:[NSArray class]]) {
+        for ( NSDictionary *procDict in retobj ) {
+            NSString* _name = procDict[@"name"];
+            int _pid = [procDict[@"pid"] intValue];
+            if ([_name isEqualToString:searchedName]) {
+                [returnArray addObject:@(_pid)];
             }
         }
+    } else {
+        fprintf(stderr, "Error: process list is not in the expected format: %s\n", [[retobj description] UTF8String]);
     }
-    else
-    {
-        fprintf(stderr, "Error: process list is not in the expected format: %s\n", get_description(retobj).c_str());
-        ok = false;
-    }
-    
-    CFRelease(retobj);
     return returnArray;
 }
 
@@ -632,7 +604,7 @@ static bool print_applist(am_device_service_connection *conn)
         for ( size_t i = 0, size = CFArrayGetCount(array); i < size; i++ )
         {
             CFDictionaryRef app_desc = (CFDictionaryRef)CFArrayGetValueAtIndex(array, i);
-            printf("%s\n", get_description(app_desc).c_str());
+            fprintf(stdout, "%s\n", get_description(app_desc).c_str());
         }
     }
     else
@@ -740,7 +712,7 @@ bool launch_application(am_device_service_connection *conn, const char *_bid, NS
         CFNumberRef _pid = (CFNumberRef)retobj;
         int pid = 0;
         CFNumberGetValue(_pid, kCFNumberSInt32Type, &pid);
-        printf("pid: %d\n", pid);
+        fprintf(stdout, "pid: %d\n", pid);
     }
     else
     {

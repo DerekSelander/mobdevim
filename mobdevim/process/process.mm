@@ -81,87 +81,58 @@ int kill_process(AMDeviceRef d, NSDictionary *options) {
 
 int running_processes(AMDeviceRef d, NSDictionary *options) {
 
-//    preload();
-    am_device_service_connection *serviceConnection = (am_device_service_connection*)connect_to_instruments_server(d);
     
+//     NSString *name = global_options.programBundleID;
+//     NSDictionary *dict = nil;
+//     mach_error_t err = AMDeviceLookupApplications(d, @{ @"ReturnAttributes": @YES, @"ShowLaunchProhibitedApps" : @YES }, &dict);
+//     if (err) {
+//         derror("Err looking up application, exiting...\n");
+//         return 1;
+//     }
+//     
+//     if (!name) {
+//         dsprintf(stderr, "%sCouldn't find the bundleIdentifier \"%s\", try listing all bundleIDs with %s%smobdevim -l%s\n", dcolor(dc_yellow), [name UTF8String], colorEnd(), dcolor(dc_bold), colorEnd());
+//         return 1;
+//     }
+//     
+//     NSDictionary *appParams = [dict objectForKey:name];
+//     NSString *path = appParams[@"Path"];
+//     if (!path) {
+//         derror("couldn't get the path for app %s\n", name.UTF8String);
+//         return 1;
+//     }
+//     NSString *bundleID = appParams[@"CFBundleIdentifier"];
+//     if (!bundleID) {
+//         derror("couldn't get the bundleID\n");
+//         return 1;
+//     }
+//     
+//     NSString *arguments = global_options.programArguments;
+//     NSArray *environment = options[kProcessEnvVars];
+//     
+//     NSMutableDictionary *dictionaryEnvironment = [NSMutableDictionary new];
+//     for (NSString *val in environment) {
+//         NSArray *components = [val componentsSeparatedByString:@"="];;
+//         if ([components count] != 2) {
+//             dsprintf(stderr, "Couldn't process \"%s\"\n", val.UTF8String);
+//             continue;
+//         }
+//         NSString *key = components.firstObject;
+//         NSString *object = components.lastObject;
+//         [dictionaryEnvironment setObject:object forKey:key];
+//     }
+//     
+     
+     am_device_service_connection* instruments_connection = (am_device_service_connection*) connect_to_instruments_server(d);
 
-    print_proclist(serviceConnection);
-
-    AMDeviceStopSession(d);
-    AMDeviceDisconnect(d);
-//    // launch the instruments server
-//    mach_error_t err = MobileDevice.AMDeviceSecureStartService(
-//                                                               cbi->dev,
-//                                                               CFSTR("com.apple.instruments.remoteserver"),
-//                                                               NULL,
-//                                                               connptr);
+//     launch_application(instruments_connection, bundleID.UTF8String, [arguments componentsSeparatedByString:@" "], dictionaryEnvironment);
+     
+//    am_device_service_connection *serviceConnection = (am_device_service_connection*)connect_to_instruments_server(d);
+//    
 //
-//    if ( err != kAMDSuccess )
-//    {
-//        // try again with an SSL-enabled service, commonly used after iOS 14
-//        err = MobileDevice.AMDeviceSecureStartService(
-//                                                      cbi->dev,
-//                                                      CFSTR("com.apple.instruments.remoteserver.DVTSecureSocketProxy"),
-//                                                      NULL,
-//                                                      connptr);
+    print_proclist(instruments_connection);
 //
-//        if ( err != kAMDSuccess )
-//        {
-//            fprintf(stderr, "Failed to start the instruments server (0x%x). "
-//                    "Perhaps DeveloperDiskImage.dmg is not installed on the device?\n", err);
-//            break;
-//        }
-//
-//        ssl_enabled = true;
-//    }
-//
-//    if ( verbose )
-//        printf("successfully launched instruments server\n");
-//}
-//while ( false );
-//
-//MobileDevice.AMDeviceStopSession(cbi->dev);
-//MobileDevice.AMDeviceDisconnect(cbi->dev);
-//
-//
-//    perform_handshake(GDeviceConnection);
-//    print_proclist(GDeviceConnection);
-//    XRMobileDevice* device  = [[NSClassFromString(@"XRMobileDevice") alloc] initWithDevice:d];
-//    if (!device) {
-//        dsprintf(stderr, "couldn't maintain a device connection\n");
-//        return 1;
-//    }
-//    id connection = [device connection];
-//    NSString *identifier = @"com.apple.instruments.server.services.deviceinfo";
-//    int version = [connection remoteCapabilityVersion:identifier];
-//    if (!version) {
-//        printf("Couldn't find capability on device!\n");
-//        [connection  cancel];
-//        return 1;
-//    }
-//
-//
-//    id channel = [connection makeChannelWithIdentifier:identifier];
-//
-////    NSURL *url = [NSURL fileURLWithPath:@"/tmp/yay"];
-////    NSData *data = [NSData dataWithContentsOfURL:url];
-//      id msg = [NSClassFromString(@"DTXMessage") messageWithSelector:NSSelectorFromString(@"runningProcesses") objectArguments:   nil];
-//
-//    dispatch_group_t group = dispatch_group_create();
-//    dispatch_group_enter(group);
-//
-//    [channel sendMessageSync:msg replyHandler:^(DTXMessage *response, int extra) {
-//        if (response.error) {
-//            printf("%s\n", response.error.description.UTF8String);
-//        }
-//        for (NSDictionary *dict in response.payloadObject) {
-//
-//            printf(" %s%7s%s %s%s%s\n", dcolor(dc_cyan), [[dict[@"pid"] description] UTF8String], colorEnd(), [dict[@"isApplication"] boolValue] ? dcolor(dc_yellow) : dcolor(dc_bold), [[dict[@"realAppName"] description] UTF8String], colorEnd());
-//        }
-//        dispatch_group_leave(group);
-//    }];
-//    dispatch_group_wait(group, 10);
-    
- 
+//    AMDeviceStopSession(d);
+//    AMDeviceDisconnect(d);
     return 0;
 }
