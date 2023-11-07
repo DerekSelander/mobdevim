@@ -37,6 +37,7 @@ void image_callback(NSDictionary *progress, id something) {
 int wifi_connect(AMDeviceRef d, NSDictionary *options) {
  
     long flags;
+    BOOL should_disable = [[options objectForKey:kWifiConnectUUIDDisable] boolValue];
     NSString *uuid_param = [options objectForKey:kWifiConnectUUID];
     if (uuid_param) {
         CFUUIDRef ref = CFUUIDCreateFromString(kCFAllocatorDefault, (CFStringRef)uuid_param);
@@ -53,7 +54,7 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
     
     handle_err(AMDeviceGetWirelessBuddyFlags(d, &flags));
     dprint("original wifi flags are 0x%x\n", flags);
-    if (kWifiConnectUUIDDisable) {
+    if (should_disable) {
         dprint("disbling wifi...");
         handle_err(AMDeviceSetWirelessBuddyFlags(d, 0));
         AMDeviceSetValue(d, @"com.apple.mobile.wireless_lockdown", @"EnableWifiDebugging", @NO);
