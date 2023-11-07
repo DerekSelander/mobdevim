@@ -41,7 +41,6 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
     NSString *uuid_param = [options objectForKey:kWifiConnectUUID];
     if (uuid_param) {
         CFUUIDRef ref = CFUUIDCreateFromString(kCFAllocatorDefault, (CFStringRef)uuid_param);
-        
         NSString *resolved_uuid = CFBridgingRelease(CFUUIDCreateString(kCFAllocatorDefault, ref));
         if ([resolved_uuid isEqualToString:@"00000000-0000-0000-0000-000000000000"]) {
             derror("Couldn't resolve UUID: \"%s\"\n", uuid_param.UTF8String);
@@ -55,10 +54,12 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
     handle_err(AMDeviceGetWirelessBuddyFlags(d, &flags));
     dprint("original wifi flags are 0x%x\n", flags);
     if (should_disable) {
-        dprint("disbling wifi...");
+        dprint("disbling wifi...\n");
         handle_err(AMDeviceSetWirelessBuddyFlags(d, 0));
         AMDeviceSetValue(d, @"com.apple.mobile.wireless_lockdown", @"EnableWifiDebugging", @NO);
+        AMDeviceSetValue(d, @"com.apple.mobile.wireless_lockdown", @"EnableWifiConnections", @NO);
         AMDeviceSetValue(d, @"com.apple.xcode.developerdomain", @"WirelessHosts", @[]);
+        return 0;
     } else {
         handle_err(AMDeviceSetWirelessBuddyFlags(d, flags | 3)) // 1 enable wifi, 2 broadcast;
     }
@@ -68,25 +69,23 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
     if (!hosts) {
         hosts = @[];
     }
-    printf("enabled hosts: %s", [[hosts debugDescription] UTF8String]);
-    id ret;
     BOOL foundIt = NO;
-    NSString *host = uuid_param;
     for (NSString *h in hosts) {
         if ([h containsString:uuid_param]) {
             foundIt = YES;
         }
     }
     
-    if (foundIt) {
+    if (!foundIt) {
         NSMutableArray *mutableHosts = [hosts mutableCopy];
-        [mutableHosts addObject:host];
-        ret = AMDeviceSetValue(d, @"com.apple.xcode.developerdomain", @"WirelessHosts", mutableHosts);
+        [mutableHosts addObject:uuid_param];
+        AMDeviceSetValue(d, @"com.apple.xcode.developerdomain", @"WirelessHosts", mutableHosts);
     }
 
     AMDeviceSetValue(d, @"com.apple.mobile.wireless_lockdown", @"EnableWifiDebugging", @YES);
+    AMDeviceSetValue(d, @"com.apple.mobile.wireless_lockdown", @"EnableWifiConnections", @YES);
     
-    printf("Enabled WIFI debugging on host \"%s\"\n", host.UTF8String);
+    dprint("Enabled WIFI debugging on host \"%s\"\n", uuid_param.UTF8String);
     return 0;
     
 }

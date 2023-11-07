@@ -190,7 +190,8 @@ void print_manpage(void) {
     dprint("\t-w\t# Connect device to WiFi mode\n\n"
             "\t\tmobdevim -w              # Connect device to wifi for this computer\n"
             "\t\tmobdevim -w uuid_here    # Connect device to wifi for UUID\n"
-            "\t\tmobdevim -w\\?            # Display the computer's host uuid\n\n");
+            "\t\tmobdevim -w off          # Disable device wifi\n"
+            "\t\tmobdevim -w uuid         # Display the computer's host uuid\n\n");
     
     dprint("\t-S\t# Arrange SpringBoard icons\n\n"
           "\t\tmobdevim -S                # Get current SpringBoard icon layout\n"
