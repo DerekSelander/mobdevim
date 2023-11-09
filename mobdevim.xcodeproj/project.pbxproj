@@ -738,29 +738,17 @@
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
-				LD_RUNPATH_SEARCH_PATHS = (
-					/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/PrivateFrameworks,
-					/Applications/Xcode.app/Contents/SharedFrameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/Frameworks,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/MobileDevice.framework/Versions/A",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-fobjc-link-runtime",
 					/System/Library/PrivateFrameworks/MobileDevice.framework/Versions/A/MobileDevice,
-					"-F/Applications/Xcode.app/Contents/SharedFrameworks/",
-					"-F/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks/",
 					"-lncurses",
-					"-weak_framework",
-					InstrumentsPlugIn,
-					"-weak_framework",
-					DVTFoundation,
-					"-Wl,-U,_OBJC_CLASS_$_XRMobileDevice",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.selander.mobdevim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -779,28 +767,16 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/PrivateFrameworks,
-					/Applications/Xcode.app/Contents/SharedFrameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/Frameworks,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/MobileDevice.framework/Versions/A",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_LDFLAGS = (
 					"-fobjc-link-runtime",
 					/System/Library/PrivateFrameworks/MobileDevice.framework/Versions/A/MobileDevice,
-					"-F/Applications/Xcode.app/Contents/SharedFrameworks/",
-					"-F/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks/",
 					"-lncurses",
-					"-weak_framework",
-					InstrumentsPlugIn,
-					"-weak_framework",
-					DVTFoundation,
-					"-Wl,-U,_OBJC_CLASS_$_XRMobileDevice",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.selander.mobdevim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -820,29 +796,17 @@
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
-				LD_RUNPATH_SEARCH_PATHS = (
-					/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/PrivateFrameworks,
-					/Applications/Xcode.app/Contents/SharedFrameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/Frameworks,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/MobileDevice.framework/Versions/A",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (
 					"-fobjc-link-runtime",
 					/System/Library/PrivateFrameworks/MobileDevice.framework/Versions/A/MobileDevice,
-					"-F/Applications/Xcode.app/Contents/SharedFrameworks/",
-					"-F/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks/",
 					"-lncurses",
-					"-weak_framework",
-					InstrumentsPlugIn,
-					"-weak_framework",
-					DVTFoundation,
-					"-Wl,-U,_OBJC_CLASS_$_XRMobileDevice",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.selander.mobdevim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -861,28 +825,16 @@
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
-				LD_RUNPATH_SEARCH_PATHS = (
-					/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/PrivateFrameworks,
-					/Applications/Xcode.app/Contents/SharedFrameworks,
-					/Applications/Xcode.app/Contents/Developer/Library/Frameworks,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/MobileDevice.framework/Versions/A",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_LDFLAGS = (
 					"-fobjc-link-runtime",
 					/System/Library/PrivateFrameworks/MobileDevice.framework/Versions/A/MobileDevice,
-					"-F/Applications/Xcode.app/Contents/SharedFrameworks/",
-					"-F/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks/",
 					"-lncurses",
-					"-weak_framework",
-					InstrumentsPlugIn,
-					"-weak_framework",
-					DVTFoundation,
-					"-Wl,-U,_OBJC_CLASS_$_XRMobileDevice",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.selander.mobdevim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
