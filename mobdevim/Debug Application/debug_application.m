@@ -291,7 +291,7 @@ int debug_application(AMDeviceRef d, NSDictionary* options) {
         execv("/usr/bin/lldb", params);
     } else if ((childPID = pid) > 0) {
         atexit(Kill_The_Spare__AVADA_KEDAVRA);
-        signal(SIGINT, Kill_The_Spare__AVADA_KEDAVRA);
+        signal(SIGINT, (void (*)(int))Kill_The_Spare__AVADA_KEDAVRA);
     } else {
         ErrorMessageThenDie("Couldn't fork(), exiting...\n");
     }
