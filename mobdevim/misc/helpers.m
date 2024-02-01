@@ -159,10 +159,11 @@ void print_manpage(void) {
     
     dprint("\t-f\t# Get device info to a connected device (defaults to first USB connection)\n\n");
     
-    dprint("\t-g\t# Get device logs/issues (TODO Broken in 16.5)\n\n"
-            "\t\tmobdevim -g com.example.name # Get issues for com.example.name app\n"
-            "\t\tmobdevim -g 3                # Get the 3rd most recent issue\n"
-            "\t\tmobdevim -g __all            # Get all the logs\n\n");
+    dprint("\t-g\t# Get device logsn\n"
+            "\t\tmobdevim -g                  # list logs\n"
+            "\t\tmobdevim -g ./crashquick.ips # print the log out\n"
+            "\t\tmobdevim -g ./name.ips -D    # print the log out and delete\n"
+            "\t\tmobdevim -g ALL              # pulls all logs into /tmp and deletes on device\n\n");
     
     dprint("\t-l\t# List app information\n\n"
         "\t\tmobdevim -l                     # List all apps\n"

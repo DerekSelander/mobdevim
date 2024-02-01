@@ -430,7 +430,10 @@ int main(int argc, const char * argv[]) {
                 exit(EXIT_SUCCESS);
                 break;
             case 'D':
-                [getopt_options setObject:@YES forKey:kDebugQuickLaunch];
+                [getopt_options setObject:@YES forKey:kGetLogsDelete];
+                break;
+                // TODO: Fix this up for Debugging on different day
+//                [getopt_options setObject:@YES forKey:kDebugQuickLaunch];
                 // drops through to debug
             case 'd':
                 assert_opt_arg();

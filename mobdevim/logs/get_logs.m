@@ -37,7 +37,12 @@ static void _AFCConnectionCallBack(AFCConnectionRef c, AFConnectionCallbackType 
 int get_logs(AMDeviceRef d, NSDictionary *options) {
     
 //    NSDictionary *dict = nil;
-    NSString *appBundle = [options objectForKey:kGetLogsAppBundle];
+    NSString *requestedFile = [options objectForKey:kGetLogsAppBundle];
+    bool should_delete = [[options objectForKey:kGetLogsDelete] boolValue];
+    bool get_all_logs = [requestedFile isEqualToString:@"ALL"];
+    if (get_all_logs) {
+        should_delete = true;
+    }
 //    NSDictionary *opts = @{ @"ApplicationType" : @"Any",
 //                            @"ReturnAttributes" : @[@"CFBundleExecutable",
 //                                                    @"CFBundleIdentifier",
@@ -60,7 +65,7 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
     
     NSString *basePath = [[options objectForKey:kGetLogsFilePath] stringByExpandingTildeInPath];
     if (!basePath) {
-        basePath = @"/tmp/";
+        basePath = @"/tmp/ios_crashes";
     }
     
     NSURL *baseURL = [NSURL URLWithString:basePath];
@@ -68,18 +73,12 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
         dsprintf(stderr, "Couldn't create access path \"%s\", exiting\n", baseURL);
         return 1;
     }
-    
-    baseURL = [baseURL URLByAppendingPathComponent:[NSString stringWithFormat:@"crashes_%@", AMDeviceGetName(d)]];
-//    if (!baseURL) {
-//        dsprintf(stderr, "Couldn't create access path \"%s\", exiting\n", baseURL);
-//        return 1;
-//    }
-    
+    NSError *error = nil;
+    if (get_all_logs) {
+        [[NSFileManager defaultManager] createDirectoryAtURL:baseURL  withIntermediateDirectories:YES attributes:nil error:&error];
+    }
     AMDServiceConnectionRef serviceConnection = nil;
     AMDStartService_NOUNLOCK(d, @"com.apple.crashreportcopymobile", &serviceConnection);
-    
-    // if we got the ping, we're all good, start querying crash logs
-//    AMDStartService(d, @"com.apple.crashreportmover", &serviceConnection);
     long soc = AMDServiceConnectionGetSocket(serviceConnection);
     if (!soc) {
         dsprintf(stderr, "Couldn't get underlying socket\n");
@@ -114,14 +113,7 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
         }
         
         
-        NSError *error = NULL;
-        NSURL *localCurrentDir = [baseURL URLByAppendingPathComponent:[currentDir stringByStandardizingPath]];
-        
-        [[NSFileManager defaultManager] createDirectoryAtURL:localCurrentDir withIntermediateDirectories:YES attributes:nil error:&error];
-        if (error) {
-            dprint("%s. exiting...\n", [[error localizedDescription] UTF8String]);
-//            return 1;
-        }
+
         
         char *remotePath = NULL;
 //        BOOL shouldDelete = [[options objectForKey:kGetLogsDelete] boolValue];
@@ -132,21 +124,20 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
 //                exit(0);
 //            }
 //        }
-#define GOOD_E_NUFF_BUFF 0x4000000
+#define GOOD_E_NUFF_BUFF 0x12000000
         
+       
         
         char* file_buffer = malloc(GOOD_E_NUFF_BUFF);
         while (AFCDirectoryRead(connectionRef, iteratorRef, &remotePath) == AMD_SUCCESS && remotePath) {
             
+            // always does current and prev dir so skip it
             if (remotePath && (!strcmp(remotePath, ".") || !strcmp(remotePath, ".."))) {
                 continue;
             }
             
-            
-            
             AFCFileDescriptorRef descriptorRef = NULL;
             NSString *resolvedRemoteFile = [NSString stringWithFormat:@"%@/%s", currentDir, remotePath];
-            dprint("%s", [resolvedRemoteFile UTF8String]);
             AFCFileInfoRef fileInfo = NULL;
             afc_err e = AFCFileInfoOpen(connectionRef, [resolvedRemoteFile UTF8String], &fileInfo);
             
@@ -160,8 +151,17 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
                     }
                     if (strcmp("S_IFDIR", value) == 0 && strcmp("st_ifmt", key) == 0) {
                         isDir = true;
-                        dprint("/\n");
-                        [unexploredDirectories addObject:[NSString stringWithFormat:@"%@/%s", currentDir, remotePath]];
+                        if (strcmp(remotePath, "Retired") != 0) {
+                            [unexploredDirectories addObject:[NSString stringWithFormat:@"%@/%s", currentDir, remotePath]];
+                            NSError *error = NULL;
+//                            NSURL *localCurrentDir = [baseURL URLByAppendingPathComponent:[resolvedRemoteFile stringByStandardizingPath]];
+                            
+                      
+                            if (error) {
+                                dprint("%s. exiting...\n", [[error localizedDescription] UTF8String]);
+                    //            return 1;
+                            }
+                        }
                         break;
                     }
                 }
@@ -169,6 +169,15 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
             }
             
             if (e || isDir) {
+                continue;
+            }
+            
+            if (!requestedFile)  {
+                dprint("%s\n", [resolvedRemoteFile UTF8String]);
+                continue;
+            }
+            
+            if (!get_all_logs && strcmp([requestedFile UTF8String], [resolvedRemoteFile UTF8String]) != 0) {
                 continue;
             }
             
@@ -180,14 +189,36 @@ int get_logs(AMDeviceRef d, NSDictionary *options) {
             
             size_t len = GOOD_E_NUFF_BUFF;
             NSString *finalPath = [NSString stringWithFormat:@"%@/%s", currentDir, remotePath];
-            FILE*p =  fopen([finalPath UTF8String], "w");
-            while (AFCFileRefRead(connectionRef, descriptorRef, file_buffer, &len) == AMD_SUCCESS && len) {
-                fwrite(file_buffer, len, 1,  p);
+            NSString *resolvedLocalPath = [[baseURL URLByAppendingPathComponent:[resolvedRemoteFile stringByStandardizingPath]] path];
+            FILE*p =  NULL;
+            
+            if (get_all_logs) {
+                p = fopen([resolvedLocalPath UTF8String], "w");
+                dprint("\"%s\" -> \"%s\"\n", [finalPath UTF8String
+                                             ], [resolvedLocalPath UTF8String]);
             }
-            fclose(p);
+            while (AFCFileRefRead(connectionRef, descriptorRef, file_buffer, &len) == AMD_SUCCESS && len) {
+                if (get_all_logs) {
+                    if (p) {
+                        fwrite(file_buffer, len, 1,  p);
+                    }
+                    
+                } else {
+                    fwrite(file_buffer, len, 1,  stdout);
+                }
+                len = GOOD_E_NUFF_BUFF;
+            }
+            if (p) {
+                fclose(p);
+            }
             
             AFCFileRefClose(connectionRef, descriptorRef);
-            
+            if (should_delete) {
+                e = AFCRemovePath(connectionRef, [finalPath UTF8String]);
+            }
+            if (e) {
+                dprint("error removing %s\n", [resolvedLocalPath UTF8String]);
+            }
             
             
         }
