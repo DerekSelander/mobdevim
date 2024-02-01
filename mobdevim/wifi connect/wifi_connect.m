@@ -10,30 +10,13 @@
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCrypto.h>
 
-#define CURRENT_DMG @"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/14.2/DeveloperDiskImage.dmg"
+//#define CURRENT_DMG @"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/14.2/DeveloperDiskImage.dmg"
 
-#define CURRENT_DMG_SIG @"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/14.2/DeveloperDiskImage.dmg.signature"
-
-//#define CURRENT_DMG_SIG @"/Users/lolgrep/Desktop/yolo.sig"
-//NSString * const kInstallApplicationPath = @"com.selander.installapplication.path";
-//static progressbar *progress = nil;
-//
-
+//#define CURRENT_DMG_SIG @"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/14.2/DeveloperDiskImage.dmg.signature"
 
 NSString *const kWifiConnectUUID = @"com.selander.wificonnect.uuid";
 NSString *const kWifiConnectUUIDDisable = @"com.selander.wificonnect.uuid.disable";
 
-
-
-void image_callback(NSDictionary *progress, id something) {
-        
-    NSLog(@"%@ %@", something, progress );
-    printf("");
-}
-
-
-
-//void * _runWakeupOperation(void *);
 int wifi_connect(AMDeviceRef d, NSDictionary *options) {
  
     long flags;
@@ -64,7 +47,6 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
         handle_err(AMDeviceSetWirelessBuddyFlags(d, flags | 3)) // 1 enable wifi, 2 broadcast;
     }
     
-    
     NSArray <NSString*>*hosts = AMDeviceCopyValue(d, @"com.apple.xcode.developerdomain", @"WirelessHosts", 0);
     if (!hosts) {
         hosts = @[];
@@ -87,5 +69,4 @@ int wifi_connect(AMDeviceRef d, NSDictionary *options) {
     
     dprint("Enabled WIFI debugging on host \"%s\"\n", uuid_param.UTF8String);
     return 0;
-    
 }

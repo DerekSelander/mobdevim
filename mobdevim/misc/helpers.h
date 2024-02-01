@@ -70,12 +70,20 @@ void dsprintf(FILE * f, const char *format, ...);
 #define AMDStartService(_D, _S, _C) {\
     NSDictionary *_inputDict = @{@"InvalidateOnDetach": @YES, @"CloseOnInvalidate" : @YES, @"UnlockEscrowBag": @YES};\
     amd_err err__  = (AMDeviceSecureStartService(_D, _S, _inputDict, _C));\
-    if (!(_C)) {\
-        derror("error: \"%s\" invalid connection to %s\n", AMDErrorString(err__), [_S UTF8String]);\
-        return 1;\
+    if (!(*_C)) {\
+        derror("error: \"%s\" invalid connection to %s\n%s:%s:%d\n", AMDErrorString(err__), [_S UTF8String], __FILE__,__PRETTY_FUNCTION__, __LINE__);\
+        return err__;\
     }\
 }
 
+#define AMDStartService_NOUNLOCK(_D, _S, _C) {\
+    NSDictionary *_inputDict = @{@"InvalidateOnDetach": @YES, @"CloseOnInvalidate" : @YES };\
+    amd_err err__  = (AMDeviceSecureStartService(_D, _S, _inputDict, _C));\
+    if (!(*_C)) {\
+        derror("error: \"%s\" invalid connection to %s\n%s:%s:%d\n", AMDErrorString(err__), [_S UTF8String], __FILE__,__PRETTY_FUNCTION__, __LINE__);\
+        return err__;\
+    }\
+}
 #define handle_err(_D) { amd_err err__ = ((_D)); if (err__) {derror("%s:%d err: \"%s\" (%d)", __FILE__, __LINE__, AMDErrorString(err__), err__); return err__; }} 
 void dprint(const char *format, ...);
 

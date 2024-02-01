@@ -37,7 +37,7 @@ AMDServiceConnectionRef connect_to_instruments_server(AMDeviceRef d) {
     if ( serviceConnection ) {
         
         load_extern_implementation();
-        perform_handshake((am_device_service_connection*)serviceConnection);
+        perform_handshake((__bridge am_device_service_connection*)serviceConnection);
 
     }
     else {
@@ -49,7 +49,7 @@ AMDServiceConnectionRef connect_to_instruments_server(AMDeviceRef d) {
 }
 
 int kill_process(AMDeviceRef d, NSDictionary *options) {
-    am_device_service_connection *serviceConnection = (am_device_service_connection*)connect_to_instruments_server(d);
+    am_device_service_connection *serviceConnection = (__bridge am_device_service_connection*)connect_to_instruments_server(d);
     
 
 //    print_proclist(serviceConnection);
@@ -123,7 +123,7 @@ int running_processes(AMDeviceRef d, NSDictionary *options) {
 //     }
 //     
      
-     am_device_service_connection* instruments_connection = (am_device_service_connection*) connect_to_instruments_server(d);
+    am_device_service_connection* instruments_connection = (__bridge am_device_service_connection*) connect_to_instruments_server(d);
 
 //     launch_application(instruments_connection, bundleID.UTF8String, [arguments componentsSeparatedByString:@" "], dictionaryEnvironment);
      

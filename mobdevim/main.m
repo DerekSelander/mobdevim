@@ -263,19 +263,17 @@ int main(int argc, const char * argv[]) {
             case 'w': {
                 actionFunc = &wifi_connect;
                 disableTimeout = NO;
-                if (optarg) {
+                if (OPTIONAL_ARGUMENT_IS_PRESENT) {
                     NSString *str = [NSString stringWithUTF8String:optarg];
-                    if ([str containsString:@"?"]) {
-                        dsprintf(stdout, "%s\n", GetHostUUID().UTF8String);
+                    if ([str containsString:@"uuid"]) {
+                        dsprintf(stdout, "macOS host UUID: %s\n", GetHostUUID().UTF8String);
                         exit(0);
-                    } else if (strcmp(optarg, "/") == 0) {
+                    } else if (strcmp(optarg, "off") == 0) {
                         [getopt_options setObject:@YES forKey:kWifiConnectUUIDDisable];
                     } else {
                         [getopt_options setObject:str forKey:kWifiConnectUUID];
                     }
-                        
                 }
-                
                 break;
             }        
             case 'W': // Prefer Use WIFI
@@ -482,10 +480,6 @@ int main(int argc, const char * argv[]) {
                     case 'P':
                         actionFunc = &get_provisioning_profiles;
                         break;
-//                    case 'c':
-//                        disableTimeout = NO;
-//                        actionFunc = console_print;
-//                        break;
                     case 'l':
                         actionFunc = &list_applications;
                         break;

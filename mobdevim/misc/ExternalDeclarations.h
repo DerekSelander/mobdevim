@@ -57,7 +57,8 @@ typedef struct _AMDevice {
 typedef  AMDevice *AMDeviceRef;
 typedef  NSObject* AMDeviceObjc;
 typedef struct _AMDServiceConnection AMDServiceConnection;
-typedef AMDServiceConnection *AMDServiceConnectionRef;
+//typedef AMDServiceConnection *AMDServiceConnectionRef;
+typedef id AMDServiceConnectionRef;
 typedef struct _AFCConnection  *AFCConnectionRef;
 
 typedef enum : int {
@@ -89,6 +90,7 @@ typedef struct _AFCIterator {
 typedef AFCIterator *AFCIteratorRef;
 
 typedef struct _AFCFileInfo *AFCFileInfoRef;
+typedef struct _AFCFile *AFCFileRef;
 
 typedef struct _AFCFileDescriptor {
   char boring[0x24];
@@ -119,25 +121,53 @@ typedef void (*AMSBackupProgressCallback) (NSString * identifier, int percent, v
 //*****************************************************************************/
 #pragma mark - AFC.* Functions, File Coordinator logic (I/O)
 //*****************************************************************************/
+typedef  void* AFCOperationRef;
+typedef int afc_err;
 
 // file i/o functions (thank you Samantha Marshall for these)
-    amd_err AFCFileRefOpen(AFCConnectionRef, const char *path, uint64_t mode,AFCFileDescriptorRef*);
-    amd_err AFCFileRefClose(AFCConnectionRef, AFCFileDescriptorRef);
-    amd_err AFCFileRefSeek(AFCConnectionRef,  AFCFileDescriptorRef, int64_t offset, uint64_t mode);
-    amd_err AFCFileRefTell(AFCConnectionRef, AFCFileDescriptorRef, uint64_t *offset);
-size_t AFCFileRefRead(AFCConnectionRef,AFCFileDescriptorRef,void **buf,size_t *len);
-    amd_err AFCFileRefSetFileSize(AFCConnectionRef,AFCFileDescriptorRef, uint64_t offset);
-    amd_err AFCFileRefWrite(AFCConnectionRef,AFCFileDescriptorRef ref, const void *buf, uint32_t len);
+afc_err AFCFileRefOpen(AFCConnectionRef, const char *path, uint64_t mode,AFCFileDescriptorRef*);
+afc_err AFCFileRefClose(AFCConnectionRef, AFCFileDescriptorRef);
+afc_err AFCFileRefSeek(AFCConnectionRef,  AFCFileDescriptorRef, int64_t offset, uint64_t mode);
+afc_err AFCFileRefTell(AFCConnectionRef, AFCFileDescriptorRef, uint64_t *offset);
+afc_err AFCFileRefRead(AFCConnectionRef,AFCFileDescriptorRef,void *buf,size_t *len);
+afc_err AFCFileRefSetFileSize(AFCConnectionRef,AFCFileDescriptorRef, uint64_t offset);
+afc_err AFCFileRefWrite(AFCConnectionRef,AFCFileDescriptorRef ref, const void *buf, uint32_t len);
 
-    amd_err AFCDirectoryOpen(AFCConnectionRef, const char *, AFCIteratorRef*);
-    amd_err AFCDirectoryRead(AFCConnectionRef, AFCIteratorRef, void *);
-    amd_err AFCDirectoryClose(AFCConnectionRef, AFCIteratorRef);
-    amd_err AFCDirectoryCreate(AFCConnectionRef, const char *);
-    amd_err AFCRemovePath(AFCConnectionRef, const char *);
 
-    amd_err AFCFileInfoOpen(AFCConnectionRef, const char *, AFCIteratorRef*);
-    amd_err AFCKeyValueRead(AFCIteratorRef,  char **key,  char **val);
-    amd_err AFCKeyValueClose(AFCIteratorRef);
+AFCOperationRef AFCOperationCreateReadDirectory(CFAllocatorRef allocator, NSString *remotePath, void* info);
+void AFCConnectionSetSecureContext(AFCConnectionRef conn, void *secure_context);
+
+void* AFCConnectionGetContext(AFCConnectionRef conn);
+void* AFCConnectionGetSecureContext(AFCConnectionRef conn);
+// Async the callback happens on the AFConnectionCreate callback
+afc_err AFCConnectionSubmitOperation(AFCConnectionRef conn, AFCOperationRef op);
+// Sync happens immediately,
+afc_err AFCConnectionProcessOperation(AFCConnectionRef conn, AFCOperationRef op, CFTimeInterval s);
+afc_err AFCOperationGetResultStatus(AFCOperationRef op);
+id AFCOperationGetResultObject(AFCOperationRef op);
+
+typedef enum {
+    AFCOpStateBad = 0,
+    AFCOpStateCreated = 1,
+    AFCOpStateDunno1 = 2,
+    AFCOpStateDunno2 = 3,
+    AFCOpStateDunno3 = 4,
+    AFCopStateDone = 5,
+} AFCOpState;
+AFCOpState AFCOperationGetState(AFCOperationRef op);
+NSString* AFCCopyErrorString(afc_err err);
+
+
+
+////// deprecated shit
+    afc_err AFCDirectoryOpen(AFCConnectionRef, const char *, AFCIteratorRef*);
+    afc_err AFCDirectoryRead(AFCConnectionRef, AFCIteratorRef, void *);
+    afc_err AFCDirectoryClose(AFCConnectionRef, AFCIteratorRef);
+    afc_err AFCDirectoryCreate(AFCConnectionRef, const char *);
+    afc_err AFCRemovePath(AFCConnectionRef, const char *);
+    afc_err AFCFileInfoOpen(AFCConnectionRef, const char *, AFCFileInfoRef*);
+    afc_err AFCKeyValueRead(AFCFileInfoRef,  char **key,  char **val);
+    afc_err AFCKeyValueClose(AFCFileInfoRef);
 
 //*****************************************************************************/
 #pragma mark - AMDevice.* Functions, Main interaction w device
@@ -165,7 +195,7 @@ char* InterfaceTypeString(InterfaceType type);
     amd_err AMDeviceStartSession(AMDeviceRef);
     amd_err AMDeviceStopSession(AMDeviceRef);
     amd_err AMDeviceNotificationUnsubscribe(DeviceNotificationRef);
-id AMDServiceConnectionGetSecureIOContext(AMDServiceConnectionRef);
+void* AMDServiceConnectionGetSecureIOContext(AMDServiceConnectionRef);
     amd_err AMDeviceSecureTransferPath(int, AMDeviceRef, NSURL*, NSDictionary *, void *, int);
     amd_err AMDeviceSecureInstallApplication(int, AMDeviceRef, NSURL*, NSDictionary*, void *, int);
     amd_err AMDeviceSecureUninstallApplication(AMDServiceConnectionRef connection, void * dunno, NSString *bundleIdentifier, NSDictionary *params, void (*installCallback)(NSDictionary*, void *));
@@ -239,7 +269,15 @@ NSArray *AMDeviceCopyProvisioningProfiles(AMDeviceRef);
 mach_error_t AMDeviceMountImage(AMDeviceRef device, NSString* imagePath, NSDictionary *options, void (*callback)(NSDictionary *status, id deviceToken), id context);
 mach_error_t AMDeviceUnmountImage(AMDeviceRef device, NSString *imagePath);
 
-AFCConnectionRef AFCConnectionCreate(int unknown, int socket, int unknown2, int unknown3, void *context);
+
+typedef enum {
+    kAFCConnectionCallbackTypeNoCallback  = 0,
+    kAFCConnectionCallbackTypeCompleted   = 1,
+    kAFCConnectionCallbackTypeInvalidated = 2
+} AFConnectionCallbackType;
+
+typedef void (*AFCConnectionCallBack)(AFCConnectionRef c, AFConnectionCallbackType callbackType, id reference);
+AFCConnectionRef AFCConnectionCreate(CFAllocatorRef allocator, int socket, int closeOnInvalidate, AFCConnectionCallBack callback, void *context);
 
 
 /// Queries information about the device see below for examples
