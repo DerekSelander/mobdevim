@@ -218,7 +218,7 @@ void print_manpage(void) {
     
     dprint("\t-o\t# Open application (requires DDI)\n\n"
           "\t\tmobdevim -o com.reverse.domain # open app\n"
-          "\t\tmobdevim -o com.reverse.domain -A \"Some args here\" -V AnEnv=EnValue -V A=B%s # open app with launch args and env vars\n\n");
+          "\t\tmobdevim -o com.reverse.domain -A \"Some args here\" -V AnEnv=EnValue -V A=B # open app with launch args and env vars\n\n");
     
     
     dprint("\t-R\t# Use color\n\n"
